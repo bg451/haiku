@@ -2,17 +2,12 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math"
 )
 
 // Elo K constant as per wikipedia
 const K = 30
-
-type Video struct {
-	id  int
-	Url string
-	Elo int
-}
 
 func expectedRating(a *Video, b *Video) (exA float64, exB float64) {
 	// Calculate expected score based on wikipedia
@@ -23,7 +18,7 @@ func expectedRating(a *Video, b *Video) (exA float64, exB float64) {
 	return exA, exB
 }
 
-func runMatch(a *Video, b *Video, winnerA bool) {
+func calculateElo(a *Video, b *Video, winnerA bool) {
 	var (
 		sA float64 = 0.0
 		sB float64 = 0.0
@@ -41,4 +36,10 @@ func runMatch(a *Video, b *Video, winnerA bool) {
 	// R' = R + K(score - expectedScore)
 	a.Elo = a.Elo + int(math.Floor(K*(sA-exA)))
 	b.Elo = b.Elo + int(math.Floor(K*(sB-exB)))
+}
+
+func handleErr(e error) {
+	if e != nil {
+		log.Printf("Error: %q\n", e)
+	}
 }

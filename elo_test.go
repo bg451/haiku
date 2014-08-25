@@ -6,8 +6,8 @@ import (
 )
 
 func TestExpectedRating(t *testing.T) {
-	vA := &Video{id: 1, Url: "swag", Elo: 2100}
-	vB := &Video{id: 2, Url: "beast", Elo: 2000}
+	vA := &Video{ID: 1, Url: "swag", Elo: 2100}
+	vB := &Video{ID: 2, Url: "beast", Elo: 2000}
 	exA, exB := expectedRating(vA, vB)
 	sExA := fmt.Sprintf("%1.11f", exA)
 	sExB := fmt.Sprintf("%1.7f", exB)
@@ -19,9 +19,9 @@ func TestExpectedRating(t *testing.T) {
 	}
 }
 func TestRunMatch_aWin(t *testing.T) {
-	vA := &Video{id: 1, Url: "swag", Elo: 2100}
-	vB := &Video{id: 2, Url: "beast", Elo: 2000}
-	runMatch(vA, vB, true)
+	vA := &Video{ID: 1, Url: "swag", Elo: 2100}
+	vB := &Video{ID: 2, Url: "beast", Elo: 2000}
+	calculateElo(vA, vB, true)
 	if vA.Elo != 2110 {
 		t.Error(fmt.Sprintf("Expected Elo: 2110, Got: %d", vA.Elo))
 	}
@@ -31,9 +31,9 @@ func TestRunMatch_aWin(t *testing.T) {
 }
 
 func TestRunMatch_bWin(t *testing.T) {
-	vA := &Video{id: 1, Url: "swag", Elo: 2100}
-	vB := &Video{id: 2, Url: "beast", Elo: 2000}
-	runMatch(vA, vB, false)
+	vA := &Video{ID: 1, Url: "swag", Elo: 2100}
+	vB := &Video{ID: 2, Url: "beast", Elo: 2000}
+	calculateElo(vA, vB, false)
 	if vA.Elo != 2080 {
 		t.Error(fmt.Sprintf("Expected Elo: 2110, Got: %d", vA.Elo))
 	}
