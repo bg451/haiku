@@ -6,9 +6,9 @@ import (
 )
 
 type Video struct {
-	ID  int
-	Url string
-	Elo int
+	ID  int    `json:"id"`
+	Url string `json:"url"`
+	Elo int    `json:"elo"`
 }
 
 func getAll() {
@@ -26,7 +26,21 @@ func getAll() {
 	}
 }
 func findVideoById(id int) (*Video, error) {
-	return &Video{}, nil
+	var vId int
+	var url string
+	var elo int
+	stmt := fmt.Sprintf("SELECT * FROM videos WHERE video_id=%d", id)
+	row, err := database.db.Query(stmt)
+	if err != nil {
+		return &Video{}, fmt.Errorf("Video not found")
+	}
+	row.Next()
+	err = row.Scan(&vId, &url, &elo)
+	if err != nil {
+		return &Video{}, fmt.Errorf("%q", err)
+	}
+
+	return &Video{vId, url, elo}, nil
 }
 func (v *Video) update() {
 	_, err := database.db.Exec("UPDATE videos SET elo=%d WHERE id=%d", v.Elo, v.ID)
