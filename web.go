@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 	"text/template"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -19,9 +21,10 @@ type httpApiFunc func(http.ResponseWriter, *http.Request)
 func main() {
 	database = initDb("./foo.db")
 	getAll()
-	startServer()
+	go startServer()
 	for {
-
+		// You need the sleep to prevent the program from locking up
+		time.Sleep(time.Millisecond * 100)
 	}
 }
 func addHandlers(router *mux.Router) {
@@ -29,7 +32,7 @@ func addHandlers(router *mux.Router) {
 		"GET": {
 			"/":                    getIndexPage,
 			"/videos":              getVideos,
-			"/videos/:id":          getVideosID,
+			"/videos/{id:[0-9]+}":  getVideosID,
 			"/videos/elo/highest":  getVideosEloHighest,
 			"/matches":             getMatches,
 			"/matches/new":         getMatchesNew,
@@ -46,18 +49,22 @@ func addHandlers(router *mux.Router) {
 		}
 	}
 }
-func startServer() {
+
+func newRouter() http.Handler {
 	router := mux.NewRouter()
 	addHandlers(router)
-	http.Handle("/", router)
+	return router
+}
+func startServer() {
+	http.Handle("/", newRouter())
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static/"))))
-	fmt.Printf("Serving http server")
+	log.Printf("Serving http server")
 	http.ListenAndServe(":8080", nil)
 }
 func getIndexPage(w http.ResponseWriter, r *http.Request) {
 	templ, err := template.ParseFiles("templates/blog.html", "templates/base.html")
 	if err != nil {
-		fmt.Fprintf(w, "There was a an error %s", err)
+		fmt.Fprintf(w, "There was a an error %s", err.Error())
 		return
 	}
 	templ.ExecuteTemplate(w, "base", nil)
@@ -81,7 +88,7 @@ func getMatchesID(w http.ResponseWriter, r *http.Request) {
 
 	match, err := findMatchById(swag)
 	if err != nil {
-		fmt.Fprintf(w, "Error: %q", err)
+		fmt.Fprintf(w, "%d Error: %q", id, err)
 		return
 	}
 	fmt.Fprintf(w, "The winner is %t", match.winnerA)
@@ -91,7 +98,18 @@ func getVideos(w http.ResponseWriter, r *http.Request) {
 
 }
 func getVideosID(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "getting videos/:id")
+	log.Printf("getting videos/:id")
+	vars := mux.Vars(r)
+	id, err := parseInt(vars["id"])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	result, err := findVideoById(id)
+	handleErr(err)
+	res, err := json.Marshal(result)
+	handleErr(err)
+	fmt.Fprintf(w, string(res))
 
 }
 func getVideosEloHighest(w http.ResponseWriter, r *http.Request) {
