@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"math"
 )
 
@@ -36,10 +35,4 @@ func calculateElo(a *Video, b *Video, winnerA bool) {
 	// R' = R + K(score - expectedScore)
 	a.Elo = a.Elo + int(math.Floor(K*(sA-exA)))
 	b.Elo = b.Elo + int(math.Floor(K*(sB-exB)))
-}
-
-func handleErr(e error) {
-	if e != nil {
-		log.Printf("Error: %q\n", e)
-	}
 }
