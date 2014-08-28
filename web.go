@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -33,6 +34,7 @@ func addHandlers(router *mux.Router) {
 			"/videos":              getVideos,
 			"/videos/{id:[0-9]+}":  getVideosID,
 			"/videos/rand":         getVideosRandom,
+			"/videos/new":          getVideosNew,
 			"/videos/elo/highest":  getVideosEloHighest,
 			"/matches":             getMatches,
 			"/matches/new":         getMatchesNew,
@@ -109,6 +111,12 @@ func getVideosRandom(w http.ResponseWriter, r *http.Request) {
 	setJson(w)
 	fmt.Fprintf(w, string(json))
 }
+func getVideosNew(w http.ResponseWriter, r *http.Request) {
+	templ, err := template.ParseFiles("templates/new_video.html", "templates/base.html")
+	handleErr(err)
+	templ.ExecuteTemplate(w, "base", nil)
+}
+
 func getVideosID(w http.ResponseWriter, r *http.Request) {
 	log.Printf("getting videos/:id")
 	vars := mux.Vars(r)
@@ -135,7 +143,19 @@ func getVideosEloHighest(w http.ResponseWriter, r *http.Request) {
 }
 
 func postVideosNew(w http.ResponseWriter, r *http.Request) {
+	vid := Video{}
+	data, err := ioutil.ReadAll(r.Body)
+	handleErr(err)
+	err = json.Unmarshal(data, &vid)
+	handleErr(err)
+	log.Printf("POST: %s", string(data))
 
+	err = insertNewVideo(vid)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
 }
 
 func postMatchesResult(w http.ResponseWriter, r *http.Request) {

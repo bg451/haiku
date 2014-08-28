@@ -1,0 +1,35 @@
+{{define "body"}}
+<div class="row">
+  <div class="col-md-6">
+    <form role="form" id="videoPostForm" >
+
+
+      <div class="form-group">
+        <span> URL </span>
+        <input class="form-control" name="url">
+      </div>
+
+      <button type="submit" id="simplePost" > asdf</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  $(function() {
+    $('#videoPostForm').submit(function(e) {
+      var $form = $(this)
+      term = $form.find("input[name='url']").val()
+      console.log(term)
+      data = {"url": term}
+      str = JSON.stringify(data)
+      $.ajax({
+        type: 'POST',
+        url: '/videos/new',
+        data: str,
+        dataType: "json"
+      });
+      e.preventDefault()
+    });
+  })
+</script>
+{{end}}

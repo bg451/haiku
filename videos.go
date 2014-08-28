@@ -57,12 +57,14 @@ func findVideoById(id int) (*Video, error) {
 
 	return &Video{vId, url, elo}, nil
 }
-func (v *Video) update() {
-	_, err := database.db.Exec("UPDATE videos SET elo=%d WHERE id=%d", v.Elo, v.ID)
-	handleErr(err)
-}
-func (v *Video) insert() {
+func insertNewVideo(v Video) error {
+	v.Elo = 1500
 	sqlStmt := fmt.Sprintf("INSERT INTO videos (elo, url) VALUES (%d, '%s')", v.Elo, v.Url)
 	_, err := database.db.Exec(sqlStmt)
+	handleErr(err)
+	return err
+}
+func (v *Video) update() {
+	_, err := database.db.Exec("UPDATE videos SET elo=%d WHERE id=%d", v.Elo, v.ID)
 	handleErr(err)
 }
