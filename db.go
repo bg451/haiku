@@ -11,14 +11,14 @@ type Database struct {
 	db *sql.DB
 }
 
-func initDb(path string) *Database {
+func initDb(path string) (*Database, error) {
 	db, err := sql.Open("sqlite3", path)
 	if err != nil {
-		log.Fatal(err)
+		return &Database{}, err
 	}
 	verifyVideoTable(db)
 	verifyMatchTable(db)
-	return &Database{db: db}
+	return &Database{db: db}, nil
 }
 func verifyVideoTable(db *sql.DB) {
 	_, err := db.Exec("SELECT * FROM videos")

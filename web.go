@@ -20,7 +20,11 @@ var database *Database = new(Database)
 type httpApiFunc func(http.ResponseWriter, *http.Request)
 
 func main() {
-	database = initDb("./foo.db")
+	var err error
+	database, err = initDb("./foo.db")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 	go startServer()
 	for {
 		// You need the sleep to prevent the program from locking up
