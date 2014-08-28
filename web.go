@@ -20,7 +20,6 @@ type httpApiFunc func(http.ResponseWriter, *http.Request)
 
 func main() {
 	database = initDb("./foo.db")
-	getAll()
 	go startServer()
 	for {
 		// You need the sleep to prevent the program from locking up
@@ -33,6 +32,7 @@ func addHandlers(router *mux.Router) {
 			"/":                    getIndexPage,
 			"/videos":              getVideos,
 			"/videos/{id:[0-9]+}":  getVideosID,
+			"/videos/rand":         getVideosRandom,
 			"/videos/elo/highest":  getVideosEloHighest,
 			"/matches":             getMatches,
 			"/matches/new":         getMatchesNew,
@@ -97,6 +97,18 @@ func getVideos(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "getting videos")
 
 }
+func getVideosRandom(w http.ResponseWriter, r *http.Request) {
+	vid, err := getRandomVideo()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json, err := json.Marshal(vid)
+	handleErr(err)
+	setJson(w)
+	fmt.Fprintf(w, string(json))
+}
 func getVideosID(w http.ResponseWriter, r *http.Request) {
 	log.Printf("getting videos/:id")
 	vars := mux.Vars(r)
@@ -106,9 +118,14 @@ func getVideosID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result, err := findVideoById(id)
-	handleErr(err)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("/videos/%d Error: %s", id, err.Error())
+		return
+	}
 	res, err := json.Marshal(result)
 	handleErr(err)
+	setJson(w)
 	fmt.Fprintf(w, string(res))
 
 }

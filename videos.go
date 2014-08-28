@@ -25,6 +25,21 @@ func getAll() {
 		log.Printf("%d: %d, %s", id, elo, url)
 	}
 }
+func getRandomVideo() (*Video, error) {
+	var id int
+	var url string
+	var elo int
+	stmt := "SELECT * FROM videos WHERE video_id >= (abs(random()) % (SELECT max(video_id) FROM videos) + 1) LIMIT 1;"
+	row, err := database.db.Query(stmt)
+	if err != nil {
+		return &Video{}, err
+	}
+	row.Next()
+	err = row.Scan(&id, &url, &elo)
+	handleErr(err)
+	return &Video{id, url, elo}, err
+
+}
 func findVideoById(id int) (*Video, error) {
 	var vId int
 	var url string
