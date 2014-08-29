@@ -21,3 +21,16 @@ func parseInt(str string) (int, error) {
 func setJson(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 }
+
+func boolToInt(b bool) int {
+	if b == true {
+		return 1
+	}
+	return 0
+}
+func intToBool(i int) bool {
+	if i == 0 {
+		return false
+	}
+	return true
+}

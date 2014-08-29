@@ -15,13 +15,13 @@ import (
 
 const httpPort = 8080
 
-var database *Database = new(Database)
+var dbase *Database = new(Database)
 
 type httpApiFunc func(http.ResponseWriter, *http.Request)
 
 func main() {
 	var err error
-	database, err = initDb("./foo.db")
+	dbase, err = initDb("./foo.db")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -67,6 +67,7 @@ func startServer() {
 	log.Printf("Serving http server")
 	http.ListenAndServe(":8080", nil)
 }
+
 func getIndexPage(w http.ResponseWriter, r *http.Request) {
 	templ, err := template.ParseFiles("templates/blog.html", "templates/base.html")
 	if err != nil {
@@ -75,15 +76,25 @@ func getIndexPage(w http.ResponseWriter, r *http.Request) {
 	}
 	templ.ExecuteTemplate(w, "base", nil)
 }
+
 func getMatches(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "getting matches")
 }
-func getMatchesNew(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "getting matches/new")
 
+func getMatchesNew(w http.ResponseWriter, r *http.Request) {
+	log.Printf("getMatchesNew")
+	match, err := dbase.generateMatch()
+	log.Printf("Match Created {vAID: %d, vbID: %d}", match.Video_a.ID, match.Video_b.ID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	resp, _ := json.Marshal(match)
+	setJson(w)
+	fmt.Fprintf(w, string(resp))
 }
+
 func getMatchesID(w http.ResponseWriter, r *http.Request) {
-	log.Printf("asfasfasd")
 	vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 0, 0)
 	if err != nil {
@@ -92,29 +103,34 @@ func getMatchesID(w http.ResponseWriter, r *http.Request) {
 	}
 	swag := int(id)
 
-	match, err := findMatchById(swag)
+	match, err := dbase.findMatchById(swag)
 	if err != nil {
 		fmt.Fprintf(w, "%d Error: %q", id, err)
 		return
 	}
-	fmt.Fprintf(w, "The winner is %t", match.winnerA)
+	fmt.Fprintf(w, "The winner is %t", match.WinnerA)
 }
 func getVideos(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "getting videos")
-
 }
+
 func getVideosRandom(w http.ResponseWriter, r *http.Request) {
-	vid, err := getRandomVideo()
+	log.Printf("getVideosRandom")
+	vid, err := dbase.getRandomVideo()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	json, err := json.Marshal(vid)
-	handleErr(err)
+	resp, err := json.Marshal(vid)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	setJson(w)
-	fmt.Fprintf(w, string(json))
+	fmt.Fprintf(w, string(resp))
 }
+
 func getVideosNew(w http.ResponseWriter, r *http.Request) {
 	templ, err := template.ParseFiles("templates/new_video.html", "templates/base.html")
 	handleErr(err)
@@ -129,7 +145,7 @@ func getVideosID(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	result, err := findVideoById(id)
+	result, err := dbase.findVideoById(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf("/videos/%d Error: %s", id, err.Error())
@@ -152,9 +168,8 @@ func postVideosNew(w http.ResponseWriter, r *http.Request) {
 	handleErr(err)
 	err = json.Unmarshal(data, &vid)
 	handleErr(err)
-	log.Printf("POST: %s", string(data))
 
-	err = insertNewVideo(vid)
+	err = dbase.insertNewVideo(vid)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

@@ -46,6 +46,7 @@ func verifyMatchTable(db *sql.DB) {
 													video_a_id INTEGER,
 													video_b_id INTEGER,
 													winnerA INTEGER NOT NULL,
+                          committed INTEGER NOT NULL,
 		                      FOREIGN KEY(video_a_id) REFERENCES videos(video_id),
 													FOREIGN KEY(video_b_id) REFERENCES videos(video_id));`
 		_, err = db.Exec(sqlStmt)

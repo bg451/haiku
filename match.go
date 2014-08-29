@@ -6,50 +6,75 @@ import (
 )
 
 type Match struct {
-	ID      int
-	video_a *Video
-	video_b *Video
-	winnerA bool
+	ID        int    `json:"id"`
+	Video_a   *Video `json:"video_a"`
+	Video_b   *Video
+	WinnerA   bool
+	Committed bool
 }
 
-func createMatch(a *Video, b *Video, winnerA bool) *Match {
-	//FIXME: Validate the inputs to make sure everything isnt nil
-	return &Match{video_a: a, video_b: b, winnerA: winnerA}
+func createMatch(a *Video, b *Video) *Match {
+	return &Match{Video_a: a, Video_b: b}
+}
+
+func (database *Database) generateMatch() (*Match, error) {
+	log.Printf("Generate Match")
+	vA, err := database.getRandomVideo()
+	handleErr(err)
+	vB, err := database.getRandomVideo()
+	handleErr(err)
+	for {
+		if vB.ID != vA.ID {
+			break
+		}
+		vB, err = database.getRandomVideo()
+		if err != nil {
+			log.Printf("Loop error %s", err.Error())
+		}
+	}
+	match := &Match{Video_a: vA, Video_b: vB, WinnerA: false, Committed: false}
+	dbase.insertMatch(match)
+	return match, err
 }
 
 //sql
 
-func insertMatch(m *Match) {
-	b := "FALSE"
-	if m.winnerA {
-		b = "TRUE"
-	}
-	sqlStmt := fmt.Sprintf(`INSERT INTO matches (video_a_id, video_b_id, winnerA)
-                          VALUES (%d, %d, %s)`,
-		m.video_a.ID,
-		m.video_b.ID,
-		b)
-	_, err := database.db.Exec(sqlStmt)
+func (database *Database) insertMatch(m *Match) {
+	wA := boolToInt(m.WinnerA)
+	co := boolToInt(m.Committed)
+	stmt := fmt.Sprintf("INSERT INTO matches (video_a_id, video_b_id, winnerA, committed) VALUES (%d, %d, %d,%d)",
+		m.Video_a.ID, m.Video_b.ID, wA, co)
+	result, err := database.db.Exec(stmt)
 	if err != nil {
-		log.Printf("Could not execute statement: %q", err)
+		log.Fatal(err.Error())
 	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		log.Printf("ID err: %s", err.Error())
+	}
+	m.ID = int(id)
 }
 
-func findMatchById(id int) (Match, error) {
+func (database *Database) findMatchById(id int) (Match, error) {
+	log.Printf("findmatchbyId")
 	var (
-		vidAId  int
-		vidBId  int
-		winnerA bool
+		vidAId    int
+		vidBId    int
+		winnerA   int
+		committed int
 	)
-	sqlStmt := fmt.Sprintf("SELECT vid_a_id, vid_b_id, winnerA FROM matches WHERE match_id=%d", id)
-	err := database.db.QueryRow(sqlStmt).Scan(&vidAId, &vidBId, &winnerA)
+	sqlStmt := fmt.Sprintf("SELECT * FROM matches WHERE match_id=%d", id)
+	err := database.db.QueryRow(sqlStmt).Scan(&id, &vidAId, &vidBId, &winnerA, &committed)
 	if err != nil {
+		log.Printf(err.Error())
 		return Match{}, fmt.Errorf("Could not find match by id")
 	}
-	vidA, err := findVideoById(vidAId)
-	vidB, err := findVideoById(vidBId)
+	vidA, err := database.findVideoById(vidAId)
+	handleErr(err)
+	vidB, err := database.findVideoById(vidBId)
+	handleErr(err)
 	if err != nil {
 		return Match{}, err
 	}
-	return Match{ID: id, video_a: vidA, video_b: vidB, winnerA: winnerA}, nil
+	return Match{ID: id, Video_a: vidA, Video_b: vidB, WinnerA: intToBool(winnerA), Committed: intToBool(committed)}, nil
 }
