@@ -22,8 +22,6 @@ func calculateElo(a *Video, b *Video, winnerA bool) {
 	var (
 		sA float64 = 0.0
 		sB float64 = 0.0
-		bA int     = 0
-		bB int     = 0
 	)
 	exA, exB := expectedRating(a, b)
 	// Assuming A won, set the sB to 0 and sA to 1
