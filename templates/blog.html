@@ -2,17 +2,39 @@
 <div class="row" style="margin-top: 10px">
   <div class="col-md-5" style="background: #ccc; padding: 4px;">
     <div class="embed-responsive embed-responsive-16by9">
-      <iframe class="embed-responsive-item" src="//www.youtube.com/embed/bNNxTikTACQ" ></iframe>
+      <iframe id="videoA" class="embed-responsive-item" src="//www.youtube.com/embed/bNNxTikTACQ" ></iframe>
     </div>
-    <div class="button-wrapper">
+    <div class="button-wrapper" id="winnerA">
       <button class="btn btn-primary"> Click Me!</button>
     </div>
   </div>
   <div class="col-md-2">
     <div style="margin: auto">asdf</div>
   </div>
-  <div class="col-md-5" style="background: #ccc">
-    This is a test
+  <div class="col-md-5" style="background: #ccc; padding: 4px;">
+    <div class="embed-responsive embed-responsive-16by9">
+      <iframe id="videoB" class="embed-responsive-item" src="//www.youtube.com/embed/bNNxTikTACQ" ></iframe>
+    </div>
+    <div class="button-wrapper" id="winnerB">
+      <button class="btn btn-primary"> Click Me!</button>
+    </div>
   </div>
 </div>
+<script>
+  $(function() {
+    get_new_match();
+    $("#winnerA").click(function(e) {
+      console.log("A was clicked")
+      post_match(true);
+      e.preventDefault();
+      get_new_match();
+    });
+    $("#winnerB").click(function(e) {
+      console.log("B was clicked")
+      post_match(false);
+      e.preventDefault();
+      get_new_match();
+    });
+  });
+</script>
 {{end}}

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"math"
 )
 
@@ -18,12 +18,14 @@ func expectedRating(a *Video, b *Video) (exA float64, exB float64) {
 }
 
 func calculateElo(a *Video, b *Video, winnerA bool) {
+	log.Printf("ELO INIT: %d, %d\n", a.Elo, b.Elo)
 	var (
 		sA float64 = 0.0
 		sB float64 = 0.0
+		bA int     = 0
+		bB int     = 0
 	)
 	exA, exB := expectedRating(a, b)
-	fmt.Printf("exA: %d, exB: %d", exA, exB)
 	// Assuming A won, set the sB to 0 and sA to 1
 	if winnerA == true {
 		sA = 1
@@ -35,4 +37,5 @@ func calculateElo(a *Video, b *Video, winnerA bool) {
 	// R' = R + K(score - expectedScore)
 	a.Elo = a.Elo + int(math.Floor(K*(sA-exA)))
 	b.Elo = b.Elo + int(math.Floor(K*(sB-exB)))
+	log.Printf("ELO CALC: %d, %d\n", a.Elo, b.Elo)
 }

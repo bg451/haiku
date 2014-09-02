@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 )
@@ -11,7 +12,9 @@ type Video struct {
 	Elo int    `json:"elo"`
 }
 
-func (database *Database) getAll() {
+func (database *Database) getAll() string {
+	var buffer bytes.Buffer
+
 	rows, err := database.db.Query("SELECT * FROM videos")
 	handleErr(err)
 
@@ -22,7 +25,16 @@ func (database *Database) getAll() {
 
 		err = rows.Scan(&id, &url, &elo)
 		handleErr(err)
-		log.Printf("%d: %d, %s", id, elo, url)
+		buffer.WriteString(fmt.Sprintf("%d: %d, %s", id, elo, url))
+	}
+	return buffer.String()
+}
+func (database *Database) updateVideo(v *Video) {
+	stmt := fmt.Sprintf("UPDATE videos SET elo=%d WHERE video_id=%d",
+		v.Elo, v.ID)
+	_, err := database.db.Exec(stmt)
+	if err != nil {
+		log.Printf("Error updating match result")
 	}
 }
 func (database *Database) getRandomVideo() (*Video, error) {

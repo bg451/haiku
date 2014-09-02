@@ -45,8 +45,8 @@ func addHandlers(router *mux.Router) {
 			"/matches/{id:[0-9]+}": getMatchesID,
 		},
 		"POST": {
-			"/videos/new":    postVideosNew,
-			"matches/result": postMatchesResult,
+			"/videos/new":     postVideosNew,
+			"/matches/result": postMatchesResult,
 		},
 	}
 	for method, routes := range m {
@@ -178,5 +178,19 @@ func postVideosNew(w http.ResponseWriter, r *http.Request) {
 }
 
 func postMatchesResult(w http.ResponseWriter, r *http.Request) {
-
+	m := Match{}
+	data, err := ioutil.ReadAll(r.Body)
+	log.Printf(string(data))
+	handleErr(err)
+	err = json.Unmarshal(data, &m)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = dbase.runMatch(&m)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
 }
