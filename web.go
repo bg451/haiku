@@ -29,7 +29,8 @@ func main() {
 	go startServer()
 	for {
 		// You need the sleep to prevent the program from locking up
-		time.Sleep(time.Millisecond * 100)
+		time.Sleep(time.Second * 3000)
+		_, _ = http.Get("http:/haitube.com")
 	}
 }
 func addHandlers(router *mux.Router) {
