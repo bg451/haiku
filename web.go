@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"text/template"
 	"time"
@@ -61,10 +62,15 @@ func newRouter() http.Handler {
 	return router
 }
 func startServer() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	log.Printf("Port: " + port)
 	http.Handle("/", newRouter())
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static/"))))
 	log.Printf("Serving http server")
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":"+port, nil)
 }
 
 func getIndexPage(w http.ResponseWriter, r *http.Request) {
