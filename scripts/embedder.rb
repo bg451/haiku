@@ -10,5 +10,5 @@ f.each_line do |line|
   link_list << "//youtube.com/embed/#{id}"
 end
 link_list.each do |l|
-  RestClient.post "http://localhost:8080/videos/new", {'url' => l}.to_json
+  RestClient.post "http://haitube.herokuapp.com/videos/new", {'url' => l}.to_json
 end
