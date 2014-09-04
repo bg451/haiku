@@ -123,7 +123,11 @@ func getMatchesID(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "The winner is %t", match.WinnerA)
 }
 func getVideos(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, dbase.getVideosSorted())
+	videos := dbase.getVideosSorted()
+	templ, err := template.ParseFiles("templates/leaderboard.html", "templates/base.html")
+	handleErr(err)
+	templ.ExecuteTemplate(w, "base", videos)
+
 }
 
 func getVideosRandom(w http.ResponseWriter, r *http.Request) {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 )
@@ -12,8 +11,7 @@ type Video struct {
 	Elo int    `json:"elo"`
 }
 
-func (database *Database) getVideosSorted() string {
-	var buffer bytes.Buffer
+func (database *Database) getVideosSorted() (videos []Video) {
 
 	rows, err := database.db.Query("SELECT * FROM videos ORDER BY elo DESC")
 	handleErr(err)
@@ -25,9 +23,9 @@ func (database *Database) getVideosSorted() string {
 
 		err = rows.Scan(&id, &url, &elo)
 		handleErr(err)
-		buffer.WriteString(fmt.Sprintf("%d: %d, %s\n", id, elo, url))
+		videos = append(videos, Video{id, url, elo})
 	}
-	return buffer.String()
+	return videos
 }
 func (database *Database) updateVideo(v *Video) {
 	log.Printf("\t\t\tStarting video update")

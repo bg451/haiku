@@ -15,7 +15,7 @@ type Database struct {
 func initDb() (*Database, error) {
 	db_url := os.Getenv("DATABASE_URL")
 	if db_url == "" {
-		db_url = "haiku"
+		db_url = "dbname=haiku sslmode=disable"
 	}
 	db, err := sql.Open("postgres", db_url)
 	if err != nil {

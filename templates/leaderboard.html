@@ -1,0 +1,20 @@
+{{define "body"}}
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th> ID </th>
+      <th> ELO </th>
+      <th> url</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{range .}}
+    <tr>
+      <td> {{.ID}}</td>
+      <td> {{.Elo}}</td>
+      <td> {{.Url}}</td>
+    </tr>
+    {{end}}
+  </tbody>
+</table>
+{{end}}
