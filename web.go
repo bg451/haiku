@@ -29,8 +29,12 @@ func main() {
 	go startServer()
 	for {
 		// You need the sleep to prevent the program from locking up
-		time.Sleep(time.Second * 3000)
-		_, _ = http.Get("http:/haitube.com")
+		time.Sleep(time.Minutes * 5)
+		resp, err := http.Get("http://haitube.herokuapp.com")
+		handleErr(err)
+		if resp.StatusCode == 200 {
+			log.Printf("server pinged")
+		}
 	}
 }
 func addHandlers(router *mux.Router) {
