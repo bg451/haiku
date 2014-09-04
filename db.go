@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"log"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"
 )
 
 type Database struct {
@@ -12,7 +12,7 @@ type Database struct {
 }
 
 func initDb(path string) (*Database, error) {
-	db, err := sql.Open("sqlite3", path)
+	db, err := sql.Open("postgres", "dbname=haiku sslmode=disable")
 	if err != nil {
 		return &Database{}, err
 	}
@@ -26,7 +26,7 @@ func verifyVideoTable(db *sql.DB) {
 		log.Printf("Error: %q", err)
 		log.Printf("Creating videos table")
 		sqlStmt := `
-		CREATE TABLE videos (video_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+		CREATE TABLE videos (video_id SERIAL PRIMARY KEY,
 		                     url VARCHAR(100),
 												 elo INTEGER);`
 		_, err = db.Exec(sqlStmt)
@@ -42,7 +42,7 @@ func verifyMatchTable(db *sql.DB) {
 		log.Printf("Error: %q", err)
 		log.Printf("Creating matches table")
 		sqlStmt := `
-		CREATE TABLE matches (match_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+		CREATE TABLE matches (match_id SERIAL PRIMARY KEY,
 													video_a_id INTEGER,
 													video_b_id INTEGER,
 													winnerA INTEGER NOT NULL,

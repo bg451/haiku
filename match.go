@@ -49,16 +49,16 @@ func (database *Database) generateMatch(excludeA int, excludeB int) (*Match, err
 //sql
 
 func (database *Database) insertMatch(m *Match) {
+	var id int
 	log.Printf("\t\tStrting matchInsertion")
 	wA := boolToInt(m.WinnerA)
 	co := boolToInt(m.Committed)
-	stmt := fmt.Sprintf("INSERT INTO matches (video_a_id, video_b_id, winnerA, committed) VALUES (%d, %d, %d,%d)",
+	stmt := fmt.Sprintf("INSERT INTO matches (video_a_id, video_b_id, winnerA, committed) VALUES (%d, %d, %d,%d) RETURNING match_id",
 		m.Video_a.ID, m.Video_b.ID, wA, co)
-	result, err := database.db.Exec(stmt)
+	err := database.db.QueryRow(stmt).Scan(&id)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Printf(err.Error())
 	}
-	id, err := result.LastInsertId()
 	if err != nil {
 		log.Printf("ID err: %s", err.Error())
 	}

@@ -44,7 +44,7 @@ func (database *Database) getRandomVideo(excludeA int, excludeB int) (*Video, er
 	var id int
 	var url string
 	var elo int
-	stmt := fmt.Sprintf("SELECT * FROM videos ORDER BY RANDOM() LIMIT 1")
+	stmt := fmt.Sprintf("SELECT * FROM videos OFFSET random() * (select count(*) from videos) limit 1")
 	err := database.db.QueryRow(stmt).Scan(&id, &url, &elo)
 	if id == excludeA || id == excludeB {
 		err = database.db.QueryRow(stmt).Scan(&id, &url, &elo)
