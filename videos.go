@@ -75,8 +75,8 @@ func (database *Database) findVideoInELoRange(elo int, id int) (*Video, error) {
 	var url string
 	var swag int
 	//Start off with a +- 10 Elo difference, expand by 5 until found
-	uR := elo + 20
-	lR := elo - 20
+	uR := elo + 30
+	lR := elo - 30
 	stmt := fmt.Sprintf(`
   SELECT * FROM videos WHERE (elo BETWEEN %d and %d)
   AND NOT video_id=%d ORDER BY RANDOM() LIMIT 1;`, lR, uR, id)
@@ -84,8 +84,8 @@ func (database *Database) findVideoInELoRange(elo int, id int) (*Video, error) {
 
 	for {
 		if err != nil {
-			uR = uR + 10
-			lR = lR - 10
+			uR = uR + 30
+			lR = lR - 30
 			if lR <= 0 {
 				err = fmt.Errorf("Video not found: ELO range exceeded 0")
 				break
