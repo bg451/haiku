@@ -29,7 +29,7 @@ func main() {
 	go startServer()
 	for {
 		// You need the sleep to prevent the program from locking up
-		time.Sleep(time.Minutes * 5)
+		time.Sleep(time.Minute * 5)
 		resp, err := http.Get("http://haitube.herokuapp.com")
 		handleErr(err)
 		if resp.StatusCode == 200 {
