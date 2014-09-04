@@ -39,7 +39,6 @@ func addHandlers(router *mux.Router) {
 			"/videos/{id:[0-9]+}":  getVideosID,
 			"/videos/rand":         getVideosRandom,
 			"/videos/new":          getVideosNew,
-			"/videos/elo/highest":  getVideosEloHighest,
 			"/matches":             getMatches,
 			"/matches/new":         getMatchesNew,
 			"/matches/{id:[0-9]+}": getMatchesID,
@@ -82,9 +81,15 @@ func getMatches(w http.ResponseWriter, r *http.Request) {
 }
 
 func getMatchesNew(w http.ResponseWriter, r *http.Request) {
-	log.Printf("getMatchesNew")
-	match, err := dbase.generateMatch()
-	log.Printf("Match Created {vAID: %d, vbID: %d}", match.Video_a.ID, match.Video_b.ID)
+	log.Printf("Starting request getNewMatches")
+	r.ParseForm()
+	va, err := strconv.ParseInt(r.Form.Get("idA"), 0, 0)
+	vb, err := strconv.ParseInt(r.Form.Get("idB"), 0, 0)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	match, err := dbase.generateMatch(int(va), int(vb))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -92,6 +97,7 @@ func getMatchesNew(w http.ResponseWriter, r *http.Request) {
 	resp, _ := json.Marshal(match)
 	setJson(w)
 	fmt.Fprintf(w, string(resp))
+	log.Printf("Ending request getNewMatches")
 }
 
 func getMatchesID(w http.ResponseWriter, r *http.Request) {
@@ -111,24 +117,12 @@ func getMatchesID(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "The winner is %t", match.WinnerA)
 }
 func getVideos(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "getting videos")
+	fmt.Fprintf(w, dbase.getVideosSorted())
 }
 
 func getVideosRandom(w http.ResponseWriter, r *http.Request) {
 	log.Printf("getVideosRandom")
-	vid, err := dbase.getRandomVideo()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
 
-	resp, err := json.Marshal(vid)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	setJson(w)
-	fmt.Fprintf(w, string(resp))
 }
 
 func getVideosNew(w http.ResponseWriter, r *http.Request) {
@@ -157,10 +151,6 @@ func getVideosID(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, string(res))
 
 }
-func getVideosEloHighest(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "getting videos/elo/highest")
-
-}
 
 func postVideosNew(w http.ResponseWriter, r *http.Request) {
 	vid := Video{}
@@ -178,19 +168,17 @@ func postVideosNew(w http.ResponseWriter, r *http.Request) {
 }
 
 func postMatchesResult(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Starting postMatchesResult")
 	m := Match{}
 	data, err := ioutil.ReadAll(r.Body)
-	log.Printf(string(data))
 	handleErr(err)
 	err = json.Unmarshal(data, &m)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	err = dbase.runMatch(&m)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	go dbase.runMatch(&m)
+
 	w.WriteHeader(http.StatusCreated)
+	log.Printf("Ending postMatchesResult")
 }

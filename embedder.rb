@@ -6,6 +6,7 @@ f = File.open("add_links.txt")
 link_list = []
 f.each_line do |line|
   id = line.split("=").last
+  id = id.chomp
   link_list << "//youtube.com/embed/#{id}"
 end
 link_list.each do |l|

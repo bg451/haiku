@@ -17,7 +17,7 @@ func createMatch(a *Video, b *Video) *Match {
 	return &Match{Video_a: a, Video_b: b}
 }
 
-func (database *Database) runMatch(m *Match) error {
+func (database *Database) runMatch(m *Match) {
 	wA := boolToInt(m.WinnerA)
 	calculateElo(m.Video_a, m.Video_b, m.WinnerA)
 	database.updateVideo(m.Video_a)
@@ -28,33 +28,28 @@ func (database *Database) runMatch(m *Match) error {
 	_, err := database.db.Exec(stmt)
 	if err != nil {
 		log.Printf("Error updating match result")
-		return err
 	}
-	return nil
 }
-func (database *Database) generateMatch() (*Match, error) {
-	log.Printf("Generate Match")
-	vA, err := database.getRandomVideo()
-	handleErr(err)
-	vB, err := database.getRandomVideo()
-	handleErr(err)
-	for {
-		if vB.ID != vA.ID {
-			break
-		}
-		vB, err = database.getRandomVideo()
-		if err != nil {
-			log.Printf("Loop error %s", err.Error())
-		}
+func (database *Database) generateMatch(excludeA int, excludeB int) (*Match, error) {
+	log.Printf("\t Starting GenerateMatch")
+	vA, err := database.getRandomVideo(excludeA, excludeB)
+	if err != nil {
+		return &Match{}, err
+	}
+	vB, err := database.findVideoInELoRange(vA.Elo, vA.ID)
+	if err != nil {
+		return &Match{}, err
 	}
 	match := &Match{Video_a: vA, Video_b: vB, WinnerA: false, Committed: false}
 	dbase.insertMatch(match)
+	log.Printf("\tEnding GenerateMatch")
 	return match, err
 }
 
 //sql
 
 func (database *Database) insertMatch(m *Match) {
+	log.Printf("\t\tStrting matchInsertion")
 	wA := boolToInt(m.WinnerA)
 	co := boolToInt(m.Committed)
 	stmt := fmt.Sprintf("INSERT INTO matches (video_a_id, video_b_id, winnerA, committed) VALUES (%d, %d, %d,%d)",
@@ -68,6 +63,7 @@ func (database *Database) insertMatch(m *Match) {
 		log.Printf("ID err: %s", err.Error())
 	}
 	m.ID = int(id)
+	log.Printf("\t\tEnding matchInsertion")
 }
 
 func (database *Database) findMatchById(id int) (Match, error) {

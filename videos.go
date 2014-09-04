@@ -12,10 +12,10 @@ type Video struct {
 	Elo int    `json:"elo"`
 }
 
-func (database *Database) getAll() string {
+func (database *Database) getVideosSorted() string {
 	var buffer bytes.Buffer
 
-	rows, err := database.db.Query("SELECT * FROM videos")
+	rows, err := database.db.Query("SELECT * FROM videos ORDER BY elo DESC")
 	handleErr(err)
 
 	for rows.Next() {
@@ -25,25 +25,31 @@ func (database *Database) getAll() string {
 
 		err = rows.Scan(&id, &url, &elo)
 		handleErr(err)
-		buffer.WriteString(fmt.Sprintf("%d: %d, %s", id, elo, url))
+		buffer.WriteString(fmt.Sprintf("%d: %d, %s\n", id, elo, url))
 	}
 	return buffer.String()
 }
 func (database *Database) updateVideo(v *Video) {
+	log.Printf("\t\t\tStarting video update")
 	stmt := fmt.Sprintf("UPDATE videos SET elo=%d WHERE video_id=%d",
 		v.Elo, v.ID)
 	_, err := database.db.Exec(stmt)
 	if err != nil {
 		log.Printf("Error updating match result")
 	}
+	log.Printf("\t\t\tEnding video update")
 }
-func (database *Database) getRandomVideo() (*Video, error) {
-	log.Printf("getRandomVideo")
+func (database *Database) getRandomVideo(excludeA int, excludeB int) (*Video, error) {
+	log.Printf("\t\tStarting getRandomVideo")
 	var id int
 	var url string
 	var elo int
 	stmt := fmt.Sprintf("SELECT * FROM videos ORDER BY RANDOM() LIMIT 1")
 	err := database.db.QueryRow(stmt).Scan(&id, &url, &elo)
+	if id == excludeA || id == excludeB {
+		err = database.db.QueryRow(stmt).Scan(&id, &url, &elo)
+	}
+	log.Printf("\t\tEnding getRandomVideo")
 	if err != nil {
 		log.Printf("swag: %s", err.Error())
 		return &Video{}, err
@@ -62,6 +68,38 @@ func (database *Database) findVideoById(id int) (*Video, error) {
 	}
 
 	return &Video{vId, url, elo}, nil
+}
+func (database *Database) findVideoInELoRange(elo int, id int) (*Video, error) {
+	log.Printf("\t\t Starting findVideoInELoRange")
+	var vId int
+	var url string
+	var swag int
+	//Start off with a +- 10 Elo difference, expand by 5 until found
+	uR := elo + 20
+	lR := elo - 20
+	stmt := fmt.Sprintf(`
+  SELECT * FROM videos WHERE (elo BETWEEN %d and %d)
+  AND NOT video_id=%d ORDER BY RANDOM() LIMIT 1;`, lR, uR, id)
+	err := database.db.QueryRow(stmt).Scan(&vId, &url, &swag)
+
+	for {
+		if err != nil {
+			uR = uR + 10
+			lR = lR - 10
+			if lR <= 0 {
+				err = fmt.Errorf("Video not found: ELO range exceeded 0")
+				break
+			}
+			stmt := fmt.Sprintf(`
+      SELECT * FROM videos WHERE (elo BETWEEN %d and %d)
+      AND NOT video_id=%d ORDER BY RANDOM() LIMIT 1;`, lR, uR, id)
+			err = database.db.QueryRow(stmt).Scan(&vId, &url, &swag)
+		} else {
+			break
+		}
+	}
+	log.Printf("\t\t Ending findVideoInELoRange")
+	return &Video{vId, url, swag}, err
 }
 func (database *Database) insertNewVideo(v Video) error {
 	log.Printf("Inserting new video")
