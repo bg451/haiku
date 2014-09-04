@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"log"
+	"os"
 
 	_ "github.com/lib/pq"
 )
@@ -11,8 +12,12 @@ type Database struct {
 	db *sql.DB
 }
 
-func initDb(path string) (*Database, error) {
-	db, err := sql.Open("postgres", "dbname=haiku sslmode=disable")
+func initDb() (*Database, error) {
+	db_url := os.Getenv("DATABASE_URL")
+	if db_url == "" {
+		db_url = "haiku"
+	}
+	db, err := sql.Open("postgres", db_url)
 	if err != nil {
 		return &Database{}, err
 	}

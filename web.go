@@ -22,7 +22,7 @@ type httpApiFunc func(http.ResponseWriter, *http.Request)
 
 func main() {
 	var err error
-	dbase, err = initDb("./foo.db")
+	dbase, err = initDb()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
