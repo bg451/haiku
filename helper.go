@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 )
 
 func handleErr(e error) {
@@ -33,4 +36,18 @@ func intToBool(i int) bool {
 		return false
 	}
 	return true
+}
+
+// Turns a youtube link into an embed link
+func validateUrl(urlString string) (string, error) {
+	url, err := url.Parse(urlString)
+	if err != nil {
+		return "", fmt.Errorf("Invalid url: Cannot parse")
+	}
+	q := url.Query()
+	host := url.Host
+	if !strings.Contains(host, "youtube.com") {
+		return "", fmt.Errorf("Invalid url: Host not youtube")
+	}
+	return "//" + host + "/embed/" + q.Get("v"), nil
 }

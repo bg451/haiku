@@ -1,12 +1,11 @@
 {{define "body"}}
 <div class="row">
   <div class="col-md-6">
+    <p class="lead"> Videos must be a youtube link and be less than 20 seconds</p>
     <form role="form" id="videoPostForm" >
-
-
       <div class="form-group">
         <span> URL </span>
-        <input class="form-control" name="url">
+        <input id="name" class="form-control" name="url">
       </div>
 
       <button type="submit" id="simplePost" > asdf</button>
@@ -17,8 +16,7 @@
 <script>
   $(function() {
     $('#videoPostForm').submit(function(e) {
-      var $form = $(this)
-      term = $form.find("input[name='url']").val()
+      term = $("#name").val()
       console.log(term)
       data = {"url": term}
       str = JSON.stringify(data)
@@ -28,6 +26,7 @@
         data: str,
         dataType: "json"
       });
+      $("#name").val(' ');
       e.preventDefault()
     });
   })
