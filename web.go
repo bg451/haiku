@@ -175,12 +175,14 @@ func postVideosNew(w http.ResponseWriter, r *http.Request) {
 	handleErr(err)
 	url, err := validateUrl(vid.Url)
 	if err != nil {
+		log.Printf("Err: %s", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	vid.Url = url
 	err = dbase.insertNewVideo(vid)
 	if err != nil {
+		log.Printf("Err: %s", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
