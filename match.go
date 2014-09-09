@@ -74,7 +74,7 @@ func (database *Database) findMatchById(id int) (Match, error) {
 		winnerA   int
 		committed int
 	)
-	sqlStmt := fmt.Sprintf("SELECT * FROM matches WHERE match_id=%d", id)
+	sqlStmt := fmt.Sprintf("SELECT match_id, video_a_id, winnerA, committed FROM matches WHERE match_id=%d", id)
 	err := database.db.QueryRow(sqlStmt).Scan(&id, &vidAId, &vidBId, &winnerA, &committed)
 	if err != nil {
 		log.Printf(err.Error())

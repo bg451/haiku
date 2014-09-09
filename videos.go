@@ -13,7 +13,7 @@ type Video struct {
 
 func (database *Database) getVideosSorted() (videos []Video) {
 
-	rows, err := database.db.Query("SELECT * FROM videos ORDER BY elo DESC")
+	rows, err := database.db.Query("SELECT video_id, url, elo FROM videos ORDER BY elo DESC")
 	handleErr(err)
 
 	for rows.Next() {
@@ -42,7 +42,7 @@ func (database *Database) getRandomVideo(excludeA int, excludeB int) (*Video, er
 	var id int
 	var url string
 	var elo int
-	stmt := fmt.Sprintf("SELECT * FROM videos OFFSET random() * (select count(*) from videos) limit 1")
+	stmt := fmt.Sprintf("SELECT video_id, url, elo FROM videos OFFSET random() * (select count(*) from videos) limit 1")
 	err := database.db.QueryRow(stmt).Scan(&id, &url, &elo)
 	if id == excludeA || id == excludeB {
 		err = database.db.QueryRow(stmt).Scan(&id, &url, &elo)
@@ -59,7 +59,7 @@ func (database *Database) findVideoById(id int) (*Video, error) {
 	var vId int
 	var url string
 	var elo int
-	stmt := fmt.Sprintf("SELECT * FROM videos WHERE video_id=%d", id)
+	stmt := fmt.Sprintf("SELECT video_id, url, elo FROM videos WHERE video_id=%d", id)
 	err := database.db.QueryRow(stmt).Scan(&vId, &url, &elo)
 	if err != nil {
 		return &Video{}, fmt.Errorf("Video not found")
@@ -76,7 +76,7 @@ func (database *Database) findVideoInELoRange(elo int, id int) (*Video, error) {
 	uR := elo + 30
 	lR := elo - 30
 	stmt := fmt.Sprintf(`
-  SELECT * FROM videos WHERE (elo BETWEEN %d and %d)
+  SELECT video_id, url, elo FROM videos WHERE (elo BETWEEN %d and %d)
   AND NOT video_id=%d ORDER BY RANDOM() LIMIT 1;`, lR, uR, id)
 	err := database.db.QueryRow(stmt).Scan(&vId, &url, &swag)
 
@@ -89,7 +89,7 @@ func (database *Database) findVideoInELoRange(elo int, id int) (*Video, error) {
 				break
 			}
 			stmt := fmt.Sprintf(`
-      SELECT * FROM videos WHERE (elo BETWEEN %d and %d)
+      SELECT video_id, url, elo FROM videos WHERE (elo BETWEEN %d and %d)
       AND NOT video_id=%d ORDER BY RANDOM() LIMIT 1;`, lR, uR, id)
 			err = database.db.QueryRow(stmt).Scan(&vId, &url, &swag)
 		} else {
