@@ -38,6 +38,10 @@ func intToBool(i int) bool {
 	return true
 }
 
+func logRequest(r *http.Request) {
+	log.Printf("%s: %15s %s ", r.Method, r.URL.String(), r.RemoteAddr)
+}
+
 // Turns a youtube link into an embed link
 func validateUrl(urlString string) (string, error) {
 	url, err := url.Parse(urlString)

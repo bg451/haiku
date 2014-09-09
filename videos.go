@@ -28,17 +28,14 @@ func (database *Database) getVideosSorted() (videos []Video) {
 	return videos
 }
 func (database *Database) updateVideo(v *Video) {
-	log.Printf("\t\t\tStarting video update")
 	stmt := fmt.Sprintf("UPDATE videos SET elo=%d WHERE video_id=%d",
 		v.Elo, v.ID)
 	_, err := database.db.Exec(stmt)
 	if err != nil {
 		log.Printf("Error updating match result")
 	}
-	log.Printf("\t\t\tEnding video update")
 }
 func (database *Database) getRandomVideo(excludeA int, excludeB int) (*Video, error) {
-	log.Printf("\t\tStarting getRandomVideo")
 	var id int
 	var url string
 	var elo int
@@ -47,7 +44,6 @@ func (database *Database) getRandomVideo(excludeA int, excludeB int) (*Video, er
 	if id == excludeA || id == excludeB {
 		err = database.db.QueryRow(stmt).Scan(&id, &url, &elo)
 	}
-	log.Printf("\t\tEnding getRandomVideo")
 	if err != nil {
 		log.Printf("swag: %s", err.Error())
 		return &Video{}, err
@@ -68,7 +64,6 @@ func (database *Database) findVideoById(id int) (*Video, error) {
 	return &Video{vId, url, elo}, nil
 }
 func (database *Database) findVideoInELoRange(elo int, id int) (*Video, error) {
-	log.Printf("\t\t Starting findVideoInELoRange")
 	var vId int
 	var url string
 	var swag int
@@ -96,7 +91,6 @@ func (database *Database) findVideoInELoRange(elo int, id int) (*Video, error) {
 			break
 		}
 	}
-	log.Printf("\t\t Ending findVideoInELoRange")
 	return &Video{vId, url, swag}, err
 }
 func (database *Database) insertNewVideo(v Video) error {

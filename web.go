@@ -79,6 +79,7 @@ func startServer() {
 }
 
 func getIndexPage(w http.ResponseWriter, r *http.Request) {
+	logRequest(r)
 	templ, err := template.ParseFiles("templates/blog.html", "templates/base.html")
 	if err != nil {
 		fmt.Fprintf(w, "There was a an error %s", err.Error())
@@ -92,7 +93,7 @@ func getMatches(w http.ResponseWriter, r *http.Request) {
 }
 
 func getMatchesNew(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Starting request getNewMatches")
+	logRequest(r)
 	r.ParseForm()
 	va, err := strconv.ParseInt(r.Form.Get("idA"), 0, 0)
 	vb, err := strconv.ParseInt(r.Form.Get("idB"), 0, 0)
@@ -108,10 +109,10 @@ func getMatchesNew(w http.ResponseWriter, r *http.Request) {
 	resp, _ := json.Marshal(match)
 	setJson(w)
 	fmt.Fprintf(w, string(resp))
-	log.Printf("Ending request getNewMatches")
 }
 
 func getMatchesID(w http.ResponseWriter, r *http.Request) {
+	logRequest(r)
 	vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 0, 0)
 	if err != nil {
@@ -125,9 +126,10 @@ func getMatchesID(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "%d Error: %q", id, err)
 		return
 	}
-	fmt.Fprintf(w, "The winner is %t", match.WinnerA)
+	fmt.Printf("%s", match.ID)
 }
 func getVideos(w http.ResponseWriter, r *http.Request) {
+	logRequest(r)
 	videos := dbase.getVideosSorted()
 	templ, err := template.ParseFiles("templates/leaderboard.html", "templates/base.html")
 	handleErr(err)
@@ -141,13 +143,14 @@ func getVideosRandom(w http.ResponseWriter, r *http.Request) {
 }
 
 func getVideosNew(w http.ResponseWriter, r *http.Request) {
+	logRequest(r)
 	templ, err := template.ParseFiles("templates/new_video.html", "templates/base.html")
 	handleErr(err)
 	templ.ExecuteTemplate(w, "base", nil)
 }
 
 func getVideosID(w http.ResponseWriter, r *http.Request) {
-	log.Printf("getting videos/:id")
+	logRequest(r)
 	vars := mux.Vars(r)
 	id, err := parseInt(vars["id"])
 	if err != nil {
@@ -168,6 +171,7 @@ func getVideosID(w http.ResponseWriter, r *http.Request) {
 }
 
 func postVideosNew(w http.ResponseWriter, r *http.Request) {
+	logRequest(r)
 	vid := Video{}
 	data, err := ioutil.ReadAll(r.Body)
 	handleErr(err)
@@ -190,7 +194,7 @@ func postVideosNew(w http.ResponseWriter, r *http.Request) {
 }
 
 func postMatchesResult(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Starting postMatchesResult")
+	logRequest(r)
 	m := Match{}
 	data, err := ioutil.ReadAll(r.Body)
 	handleErr(err)
@@ -202,5 +206,4 @@ func postMatchesResult(w http.ResponseWriter, r *http.Request) {
 	go dbase.runMatch(&m)
 
 	w.WriteHeader(http.StatusCreated)
-	log.Printf("Ending postMatchesResult")
 }

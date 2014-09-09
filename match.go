@@ -31,7 +31,6 @@ func (database *Database) runMatch(m *Match) {
 	}
 }
 func (database *Database) generateMatch(excludeA int, excludeB int) (*Match, error) {
-	log.Printf("\t Starting GenerateMatch")
 	vA, err := database.getRandomVideo(excludeA, excludeB)
 	if err != nil {
 		return &Match{}, err
@@ -42,7 +41,6 @@ func (database *Database) generateMatch(excludeA int, excludeB int) (*Match, err
 	}
 	match := &Match{Video_a: vA, Video_b: vB, WinnerA: false, Committed: false}
 	dbase.insertMatch(match)
-	log.Printf("\tEnding GenerateMatch")
 	return match, err
 }
 
@@ -50,7 +48,6 @@ func (database *Database) generateMatch(excludeA int, excludeB int) (*Match, err
 
 func (database *Database) insertMatch(m *Match) {
 	var id int
-	log.Printf("\t\tStrting matchInsertion")
 	wA := boolToInt(m.WinnerA)
 	co := boolToInt(m.Committed)
 	stmt := fmt.Sprintf("INSERT INTO matches (video_a_id, video_b_id, winnerA, committed) VALUES (%d, %d, %d,%d) RETURNING match_id",
@@ -63,11 +60,9 @@ func (database *Database) insertMatch(m *Match) {
 		log.Printf("ID err: %s", err.Error())
 	}
 	m.ID = int(id)
-	log.Printf("\t\tEnding matchInsertion")
 }
 
 func (database *Database) findMatchById(id int) (Match, error) {
-	log.Printf("findmatchbyId")
 	var (
 		vidAId    int
 		vidBId    int

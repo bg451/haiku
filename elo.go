@@ -1,9 +1,6 @@
 package main
 
-import (
-	"log"
-	"math"
-)
+import "math"
 
 // Elo K constant as per wikipedia
 const K = 30
@@ -18,7 +15,6 @@ func expectedRating(a *Video, b *Video) (exA float64, exB float64) {
 }
 
 func calculateElo(a *Video, b *Video, winnerA bool) {
-	log.Printf("\t\t\tStarting elo calc")
 	var (
 		sA float64 = 0.0
 		sB float64 = 0.0
@@ -35,5 +31,4 @@ func calculateElo(a *Video, b *Video, winnerA bool) {
 	// R' = R + K(score - expectedScore)
 	a.Elo = a.Elo + int(math.Floor(K*(sA-exA)))
 	b.Elo = b.Elo + int(math.Floor(K*(sB-exB)))
-	log.Printf("\t\t\tEnding elo calc")
 }
