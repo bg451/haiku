@@ -41,6 +41,7 @@ func addHandlers(router *mux.Router) {
 	m := map[string]map[string]httpApiFunc{
 		"GET": {
 			"/":                    getIndexPage,
+			"/about":               getAboutPage,
 			"/videos":              getVideos,
 			"/videos/{id:[0-9]+}":  getVideosID,
 			"/videos/rand":         getVideosRandom,
@@ -83,6 +84,15 @@ func getIndexPage(w http.ResponseWriter, r *http.Request) {
 	templ, err := template.ParseFiles("templates/blog.html", "templates/base.html")
 	if err != nil {
 		fmt.Fprintf(w, "There was a an error %s", err.Error())
+		return
+	}
+	templ.ExecuteTemplate(w, "base", nil)
+}
+func getAboutPage(w http.ResponseWriter, r *http.Request) {
+	logRequest(r)
+	templ, err := template.ParseFiles("templates/about.html", "templates/base.html")
+	if err != nil {
+		fmt.Println("err: %s", err.Error())
 		return
 	}
 	templ.ExecuteTemplate(w, "base", nil)
