@@ -24,7 +24,7 @@ func main() {
 	var err error
 	dbase, err = initDb()
 	if err != nil {
-		log.Error(err.Error())
+		log.Fatal(err.Error())
 	}
 	go startServer()
 	for {
@@ -33,7 +33,7 @@ func main() {
 		resp, err := http.Get("http://haitube.herokuapp.com")
 		handleErr(err)
 		if resp.StatusCode == 200 {
-			log.Printf("server pinged")
+			log.Println("server pinged")
 		}
 	}
 }

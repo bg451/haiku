@@ -39,11 +39,23 @@ func intToBool(i int) bool {
 }
 
 func logRequest(r *http.Request) {
-	log.Printf("%s: %15s %s ", r.Method, r.URL.String(), r.RemoteAddr)
+	log.Println("%s: %15s %s ", r.Method, r.URL.String(), r.RemoteAddr)
 }
 
-// Turns a youtube link into an embed link
+// Ping youtube to make sure the video exists
+// Then validate the video length
+// If the video is less than 35 seconds, create a new one
+
 func validateUrl(urlString string) (string, error) {
+	// oauthKey = "TABzAdrAofgB9Vw7NIffXgSl"
+	// client, err := buildOAuthHTTPClient(oauthKey)
+	// if err != nil {
+	// 	return
+	// }
+	// service, err := youtube.New(client)
+	// if err != nil {
+	// 	return
+	// }
 	url, err := url.Parse(urlString)
 	if err != nil {
 		return "", fmt.Errorf("Invalid url: Cannot parse")
@@ -53,5 +65,12 @@ func validateUrl(urlString string) (string, error) {
 	if !strings.Contains(host, "youtube.com") {
 		return "", fmt.Errorf("Invalid url: Host not youtube")
 	}
-	return "//" + host + "/embed/" + q.Get("v"), nil
+	id := q.Get("v")
+	// call := service.VideoListCall.Id(id)
+	// results, err := call.Do()
+	// if err != nil {
+	// 	log.Printf("swag")
+	// 	return
+	// }
+	return "//" + host + "/embed/" + id, nil
 }
