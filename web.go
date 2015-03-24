@@ -24,7 +24,7 @@ func main() {
 	var err error
 	dbase, err = initDb()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Error(err.Error())
 	}
 	go startServer()
 	for {
@@ -35,6 +35,12 @@ func main() {
 		if resp.StatusCode == 200 {
 			log.Printf("server pinged")
 		}
+	}
+}
+func logger(h httpApiFunc) httpApiFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		logRequest(r)
+		h(w, r)
 	}
 }
 func addHandlers(router *mux.Router) {
@@ -57,7 +63,7 @@ func addHandlers(router *mux.Router) {
 	}
 	for method, routes := range m {
 		for route, fnc := range routes {
-			router.HandleFunc(route, fnc).Methods(method)
+			router.HandleFunc(route, logger(fnc)).Methods(method)
 		}
 	}
 }
@@ -80,7 +86,6 @@ func startServer() {
 }
 
 func getIndexPage(w http.ResponseWriter, r *http.Request) {
-	logRequest(r)
 	templ, err := template.ParseFiles("templates/blog.html", "templates/base.html")
 	if err != nil {
 		fmt.Fprintf(w, "There was a an error %s", err.Error())
@@ -89,7 +94,6 @@ func getIndexPage(w http.ResponseWriter, r *http.Request) {
 	templ.ExecuteTemplate(w, "base", nil)
 }
 func getAboutPage(w http.ResponseWriter, r *http.Request) {
-	logRequest(r)
 	templ, err := template.ParseFiles("templates/about.html", "templates/base.html")
 	if err != nil {
 		fmt.Println("err: %s", err.Error())
@@ -103,7 +107,6 @@ func getMatches(w http.ResponseWriter, r *http.Request) {
 }
 
 func getMatchesNew(w http.ResponseWriter, r *http.Request) {
-	logRequest(r)
 	r.ParseForm()
 	va, err := strconv.ParseInt(r.Form.Get("idA"), 0, 0)
 	vb, err := strconv.ParseInt(r.Form.Get("idB"), 0, 0)
@@ -122,7 +125,6 @@ func getMatchesNew(w http.ResponseWriter, r *http.Request) {
 }
 
 func getMatchesID(w http.ResponseWriter, r *http.Request) {
-	logRequest(r)
 	vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 0, 0)
 	if err != nil {
@@ -139,7 +141,6 @@ func getMatchesID(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("%s", match.ID)
 }
 func getVideos(w http.ResponseWriter, r *http.Request) {
-	logRequest(r)
 	videos := dbase.getVideosSorted()
 	templ, err := template.ParseFiles("templates/leaderboard.html", "templates/base.html")
 	handleErr(err)
@@ -153,14 +154,12 @@ func getVideosRandom(w http.ResponseWriter, r *http.Request) {
 }
 
 func getVideosNew(w http.ResponseWriter, r *http.Request) {
-	logRequest(r)
 	templ, err := template.ParseFiles("templates/new_video.html", "templates/base.html")
 	handleErr(err)
 	templ.ExecuteTemplate(w, "base", nil)
 }
 
 func getVideosID(w http.ResponseWriter, r *http.Request) {
-	logRequest(r)
 	vars := mux.Vars(r)
 	id, err := parseInt(vars["id"])
 	if err != nil {
@@ -181,7 +180,6 @@ func getVideosID(w http.ResponseWriter, r *http.Request) {
 }
 
 func postVideosNew(w http.ResponseWriter, r *http.Request) {
-	logRequest(r)
 	vid := Video{}
 	data, err := ioutil.ReadAll(r.Body)
 	handleErr(err)
@@ -204,7 +202,6 @@ func postVideosNew(w http.ResponseWriter, r *http.Request) {
 }
 
 func postMatchesResult(w http.ResponseWriter, r *http.Request) {
-	logRequest(r)
 	m := Match{}
 	data, err := ioutil.ReadAll(r.Body)
 	handleErr(err)
